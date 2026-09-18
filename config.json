@@ -1,36 +1,11 @@
 {
-    "name": "manhuaren",
-    "icon": "https://css79tw.cdndm5.com/v202609180933/manhuaren/images/mobile/normal-top-back.png",
-    "url": "https://www.manhuaren.com/manhua-list/",
-    "index": "index.js",
-    "book": "book.js",
-    "chapter": "chapter.js",
-    "search": {
-        "src": "search.js",
-        "data": {
-            "url": "https://www.manhuagui.com/s/{0}_p{1}.html"
-        }
-    },
-    "categories": [
-        {
-            "title": "最新发布",
-            "id": "last",
-            "url": "https://www.manhuagui.com/list/index_p{0}.html"
-        },
-        {
-            "title": "最新更新",
-            "id": "update",
-            "url": "https://www.manhuagui.com/list/update_p{0}.html"
-        },
-        {
-            "title": "人气最旺",
-            "id": "hot",
-            "url": "https://www.manhuagui.com/list/view_p{0}.html"
-        },
-        {
-            "title": "评分最高",
-            "id": "rate",
-            "url": "https://www.manhuagui.com/list/rate_p{0}.html"
-        }
-    ]
+  "id": "com.manhuaren.kinoko",
+  "name": "漫畫人",
+  "host": "https://www.manhuaren.com",
+  "version": 1,
+  "api_version": 1,
+  "search": "search.js",
+  "collection": "collection.js",
+  "book": "book.js",
+  "chapter": "chapter.js"
 }

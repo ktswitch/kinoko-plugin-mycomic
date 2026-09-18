@@ -1,55 +1,35 @@
-const {Collection} = require('./collection');
-const {LZString} = require('./lzstring');
+function main(doc) {
+    // 1. 抓取基本書籍資訊
+    const titleEl = doc.querySelector('.manga-detail-title, .detail-main-title');
+    const authorEl = doc.querySelector('.manga-detail-author a, .detail-main-author');
+    const introEl = doc.querySelector('.manga-detail-description, .detail-selector-content p');
+    const coverEl = doc.querySelector('.manga-detail-cover img, .detail-main-cover img');
 
-class BookCollection extends Collection {
+    let cover = coverEl ? (coverEl.getAttribute('data-original') || coverEl.getAttribute('src')) : '';
+    if (cover && cover.startsWith('//')) cover = 'https:' + cover;
 
-    async fetch(url) {
-        let pageUrl = new PageURL(url);
+    // 2. 抓取章列表
+    const chapterLinks = doc.querySelectorAll('.detail-list-form-con a, .manga-detail-chapter-list a');
+    const chapters = [];
 
-        let doc = await super.fetch(url);
-        let lists = doc.querySelectorAll('.chapter-list'), results = [];
-        if (lists.length === 0) {
-            let stateNode = doc.querySelector('#__VIEWSTATE');
-            if (stateNode) {
-                let ctx = glib.ScriptContext.new('v8');
-                ctx.eval(LZString);
-                let html = ctx.eval('LZString.decompressFromBase64("' + stateNode.attr('value') + '")');
-                doc = glib.GumboNode.parse2(html);
-                lists = doc.querySelectorAll('.chapter-list');
-            }
-        }
-        for (let list of lists) {
-            let ul_arr = list.querySelectorAll('ul').reverse();
-            for (let ul of ul_arr) {
-                let li_arr = ul.querySelectorAll('li > a');
-                for (let li of li_arr) {
-                    let item = glib.DataItem.new();
-                    item.type = glib.DataItem.Type.Chapter;
-                    item.title = li.attr('title');
-                    console.log(`title ${item.title}`);
-                    item.link = pageUrl.href(li.attr('href'));
-                    item.subtitle = li.querySelector('i').text;
-                    results.push(item);
-                }
-            }
-        }
-        return results;
-    }
+    chapterLinks.forEach(link => {
+        let url = link.getAttribute('href');
+        if (url && url.startsWith('/')) url = 'https://manhuaren.com' + url;
 
-    reload(_, cb) {
-        console.log("reload");
-        this.fetch(this.url).then((results) => {
-            this.setData(results);
-            cb.apply(null);
-        }).catch(function(err) {
-            if (err instanceof Error) 
-                err = glib.Error.new(305, err.message);
-            cb.apply(err);
+        chapters.push({
+            title: link.textContent.trim(),
+            url: url
         });
-        return true;
-    }
-}
+    });
 
-module.exports = function(data) {
-    return BookCollection.new(data);
-};
+    // 漫畫人網頁的章節通常是倒序（最新在上面），我們需要把它反轉讓 App 從第一話開始讀
+    chapters.reverse();
+
+    return {
+        title: titleEl ? titleEl.textContent.trim() : '',
+        cover: cover,
+        author: authorEl ? authorEl.textContent.trim() : '未知',
+        intro: introEl ? introEl.textContent.trim() : '',
+        chapters: chapters
+    };
+}

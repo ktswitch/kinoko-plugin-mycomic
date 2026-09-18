@@ -1,35 +1,31 @@
-class Collection extends glib.Collection {
+function main(doc) {
+    // 找出網頁中所有的漫畫清單節點（通常在 ul 或特定的 class 區塊內）
+    const items = doc.querySelectorAll('.manga-list-2 li, .manga-list li, .book-list li');
+    const list = [];
 
-    constructor(data) {
-        super(data);
-        this.url = data.url || data.link;
-    }
+    items.forEach(item => {
+        const titleEl = item.querySelector('.title a, a.name, .manga-list-2-title a');
+        const imgEl = item.querySelector('img');
+        const updateEl = item.querySelector('.tip, .manga-list-2-tip, .latest-chapter');
 
-    fetch(url) {
-        return new Promise((resolve, reject)=>{
-            console.log("start request " + url);
-            let req = glib.Request.new('GET', url);
-            // req.setHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Mobile Safari/537.36');
-            req.setHeader('Accept-Language', 'en-US,en;q=0.9');
-            this.callback = glib.Callback.fromFunction(function() {
-                if (req.getError()) {
-                    reject(glib.Error.new(302, "Request error " + req.getError()));
-                } else {
-                    let body = req.getResponseBody();
-                    if (body) {
-                        console.log("request complete!");
-                        resolve(glib.GumboNode.parse(body));
-                    } else {
-                        reject(glib.Error.new(301, "Response null body"));
-                    }
-                }
+        if (titleEl) {
+            let cover = imgEl ? (imgEl.getAttribute('data-original') || imgEl.getAttribute('src')) : '';
+            // 補全相對路徑網址
+            if (cover && cover.startsWith('//')) cover = 'https:' + cover;
+
+            let url = titleEl.getAttribute('href');
+            if (url && url.startsWith('/')) url = 'https://manhuaren.com' + url;
+
+            list.push({
+                title: titleEl.textContent.trim(),
+                cover: cover,
+                url: url,
+                subtitle: updateEl ? updateEl.textContent.trim() : ''
             });
-            req.setOnComplete(this.callback);
-            req.start();
-        });
-    }
-}
+        }
+    });
 
-module.exports = {
-    Collection
-};
+    return {
+        list: list
+    };
+}

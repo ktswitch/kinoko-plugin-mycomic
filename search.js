@@ -1,66 +1,30 @@
+function main(doc) {
+    // 搜尋結果的 HTML 結構通常與分類列表類似
+    const items = doc.querySelectorAll('.manga-list-2 li, .search-list li, .book-list li');
+    const list = [];
 
-const {Collection} = require('./collection');
+    items.forEach(item => {
+        const titleEl = item.querySelector('.title a, a.name, .manga-list-2-title a');
+        const imgEl = item.querySelector('img');
+        const updateEl = item.querySelector('.tip, .manga-list-2-tip');
 
-class SearchCollection extends Collection {
-    
-    constructor(data) {
-        super(data);
-        this.page = 0;
-    }
+        if (titleEl) {
+            let cover = imgEl ? (imgEl.getAttribute('data-original') || imgEl.getAttribute('src')) : '';
+            if (cover && cover.startsWith('//')) cover = 'https:' + cover;
 
-    async fetch(url) {
-        let pageUrl = new PageURL(url);
-        let doc = await super.fetch(url);
-        let nodes = doc.querySelectorAll('.book-result .cf .book-cover .bcover');
+            let url = titleEl.getAttribute('href');
+            if (url && url.startsWith('/')) url = 'https://manhuaren.com' + url;
 
-        let results = [];
-        for (let node of nodes) {
-            let item = glib.DataItem.new();
-            item.type = glib.DataItem.Type.Book;
-            item.link = pageUrl.href(node.attr('href'));
-            item.title = node.attr('title');
-            item.picture = node.querySelector('img').attr('src');
-            item.subtitle = node.querySelector('.tt').text
-            results.push(item);
+            list.push({
+                title: titleEl.textContent.trim(),
+                cover: cover,
+                url: url,
+                subtitle: updateEl ? updateEl.textContent.trim() : ''
+            });
         }
-        return results;
-    }
+    });
 
-    makeURL(page) {
-        return this.url.replace('{0}', glib.Encoder.urlEncode(this.key)).replace('{1}', page + 1);
-    }
-
-    reload(data, cb) {
-        this.key = data.get("key") || this.key;
-        let page = data.get("page") || 0;
-        if (!this.key) return false;
-        this.fetch(this.makeURL(page)).then((results)=>{
-            this.page = page;
-            this.setData(results);
-            cb.apply(null);
-        }).catch(function(err) {
-            if (err instanceof Error) 
-                err = glib.Error.new(305, err.message);
-            cb.apply(err);
-        });
-        return true;
-    } 
-
-    loadMore(cb) {
-        let page = this.page + 1;
-        this.fetch(this.makeURL(page)).then((results)=>{
-            this.page = page;
-            this.appendData(results);
-            cb.apply(null);
-        }).catch(function(err) {
-            if (err instanceof Error) 
-                err = glib.Error.new(305, err.message);
-            cb.apply(err);
-        });
-        return true;
-    }
+    return {
+        list: list
+    };
 }
-
-module.exports = function(data) {
-    return SearchCollection.new(data ? data.toObject() : {});
-};
