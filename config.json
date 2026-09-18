@@ -1,11 +1,6 @@
 {
-  "id": "com.manhuaren.kinoko",
-  "name": "漫畫人",
-  "host": "https://www.manhuaren.com",
-  "version": 1,
-  "api_version": 1,
-  "search": "search.js",
-  "collection": "collection.js",
-  "book": "book.js",
-  "chapter": "chapter.js"
+    "name": "manhuagui",
+    "icon": "https://css79tw.cdndm5.com/v202609180933/manhuaren/images/mobile/normal-top-back.png",
+    "url": "https://www.manhuaren.com/manhua-list/"
+    
 }
